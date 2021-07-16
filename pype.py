@@ -28,6 +28,9 @@ class Pype:
         self.filledby = [False, False, False, False]
         self.source = False
 
+    def __str__(self):
+        return "Pype"
+
     def rotate(self, amount):
         self.surface = pg.transform.rotate(self.surface, amount)
         self.rect = self.surface.get_rect(x=self.rect.x, y=self.rect.y)
