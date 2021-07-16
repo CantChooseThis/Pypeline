@@ -74,8 +74,8 @@ def flow(tank, objs):
            below = objs[resource.col()][resource.row()-1]
            resource_below = False
            for obj in below:
-               if isinstance(obj, Resource):
-                   resource_below = True
+            if isinstance(obj, Resource):
+                resource_below = True
             if not resource_below:
                 objs[resource.col()][resource.row()].pop()
                 resource.rect.y += 36
