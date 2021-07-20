@@ -13,10 +13,10 @@ def draw(all_pipes, liquids, tank):
     WIN.fill((0, 0, 0))
     for liquid in liquids:
         WIN.blit(liquid.surface, liquid.rect)
-    for pipe in all_pipes:
-        WIN.blit(pipe.surface, pipe.rect)
     for resource in tank:
         WIN.blit(resource.surface, resource.rect)
+    for pipe in all_pipes:
+        WIN.blit(pipe.surface, pipe.rect)
 
     pg.display.update()
 
@@ -69,17 +69,28 @@ def gprint(grid):
 
 
 def flow(tank, objs):
-   for resource in reversed(tank):
-       if resource.stage == 0:
-           below = objs[resource.col()][resource.row()-1]
-           resource_below = False
-           for obj in below:
-            if isinstance(obj, Resource):
-                resource_below = True
-            if not resource_below:
-                objs[resource.col()][resource.row()].pop()
-                resource.rect.y += 36
-                objs[resource.col()][resource.row()].append(resource)
+    for resource in reversed(tank):
+        if resource.stage == 0:  # if I'm in the top tank
+            below = objs[resource.col()][resource.row()-1]  # Evaluate all objects below me
+            canfall = True  # I'm going to check if I can fall
+            for obj in below:  # Evaluate all objects below me
+                if isinstance(obj, Resource):  # If the object is a resource
+                    canfall = False  # I can't fall
+                if isinstance(obj, Pype):  # If the object is a pipe
+                    canfall = obj.open[0] and canfall  # I can fall if I could fall before & the pipe is open to me
+
+            if canfall: # If I can fall
+                objs[resource.col()][resource.row()].pop()  # Remove myself from my previous location
+                resource.rect.y += 36  # Change my Y to move down
+                myspot = objs[resource.col()][resource.row()]  # Need to ask if I'm still in the top reservoir
+                for obj in myspot:  # Evaluate all the objects in my new position
+                    if isinstance(obj, Pype):  # If the object is a pipe
+                        resource.stage = 1  # I'm now in the pypeline
+                    if isinstance(obj, Resource):  # If there is a resource here, there is a problem
+                        print(f"There is a resource in my spot! (Row: {resource.row()} | Col: {resource.col()})")
+                objs[resource.col()][resource.row()].append(resource)  # Adds me to my new location
+        elif resource.stage == 1:
+          pass
 
 
 def main():
@@ -102,7 +113,7 @@ def main():
             pipe.n[WEST] = [e for e in all_pipes if e.rect.y == pipe.rect.y and e.rect.x == pipe.rect.x-pipe.rect.width][0]
     liquids = []
     all_pipes[0].source = True
-    pg.time.set_timer(PROGRESS, 5000)
+    pg.time.set_timer(PROGRESS, 1500)
     play = True
     counter = 0
     while play:
@@ -116,10 +127,11 @@ def main():
                 for pipe in clicked:
                     pipe.rotate(-90 if left_click else 90)
                     counter += 1
-                    print(pipe.filledby)
+                    print(pipe.open)
             if event.type == PROGRESS:
-                check_filled(all_pipes)
-                liquids = [pipe.liquid for pipe in all_pipes if pipe.filled]
+                # check_filled(all_pipes)
+                # liquids = [pipe.liquid for pipe in all_pipes if pipe.filled]
+                flow(tank, objs)
         pg.display.set_caption(f"Pypeline - {counter} moves")
 
         draw(all_pipes, liquids, tank)
