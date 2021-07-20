@@ -60,19 +60,36 @@ def check_filled(all_pipes):
 def gprint(grid):
     for row in grid:
         for col in row:
-            print(str(col), end="")
+            print(' [', end='')
+            for obj in col:
+                print(str(obj), end="")
+            # print(str(col), end="")
+            print('] ', end='')
         print()
+
+
+def flow(tank, objs):
+   for resource in reversed(tank):
+       if resource.stage == 0:
+           below = objs[resource.col()][resource.row()-1]
+           resource_below = False
+           for obj in below:
+            if isinstance(obj, Resource):
+                resource_below = True
+            if not resource_below:
+                objs[resource.col()][resource.row()].pop()
+                resource.rect.y += 36
+                objs[resource.col()][resource.row()].append(resource)
 
 
 def main():
     objs = [[[] for y in range(WIDTH//36)] for x in range(HEIGHT//36)]
     tank = [Resource(x=i//3*36, y=i % 3 * 36) for i in range(30)]
     for resource in tank:
-        # if resource.rect.
-        objs[resource.rect.y//36][resource.rect.x%36].append(resource)
+        objs[resource.rect.y//36][resource.rect.x//36].append(resource)
     all_pipes = [Pype(x=i % 10*36, y=i//10*36+108) for i in range(100)]
     for pipe in all_pipes:
-        pass # objs[pipe.rect.x//36][pipe.rect.y//36].append(pipe)
+        objs[pipe.rect.y//36][pipe.rect.x//36].append(pipe)
     gprint(objs)
     for pipe in all_pipes:
         if pipe.rect.y > 108:
