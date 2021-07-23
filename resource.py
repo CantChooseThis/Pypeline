@@ -14,4 +14,4 @@ class Resource:
         return self.rect.y//36
 
     def __str__(self):
-        return "Resource"
+        return "R"
