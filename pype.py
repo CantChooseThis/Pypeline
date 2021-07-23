@@ -29,7 +29,7 @@ class Pype:
         self.source = False
 
     def __str__(self):
-        return "Pype"
+        return "P"
 
     def rotate(self, amount):
         self.surface = pg.transform.rotate(self.surface, amount)

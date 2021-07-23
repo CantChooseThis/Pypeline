@@ -71,33 +71,42 @@ def gprint(grid):
 def flow(tank, objs):
     for resource in reversed(tank):
         if resource.stage == 0:  # if I'm in the top tank
-            below = objs[resource.col()][resource.row()-1]  # Evaluate all objects below me
+            below = objs[resource.row()+1][resource.col()]  # Evaluate all objects below me
+            # print(f"I am resource at row {resource.row()} and column {resource.col()}. I am checking one row below me.")
             canfall = True  # I'm going to check if I can fall
             for obj in below:  # Evaluate all objects below me
                 if isinstance(obj, Resource):  # If the object is a resource
                     canfall = False  # I can't fall
+                    # print(f"There is a resource at row {resource.row()+1} and column {resource.col()}")
                 if isinstance(obj, Pype):  # If the object is a pipe
                     canfall = obj.open[0] and canfall  # I can fall if I could fall before & the pipe is open to me
 
             if canfall: # If I can fall
-                objs[resource.col()][resource.row()].pop()  # Remove myself from my previous location
+                # print("There should be no resources here.")
+                print(f"I am popping from row {resource.row()} and column {resource.col()}.", end='I popped a')
+                print(type(objs[resource.row()][resource.col()].pop()))  # Remove myself from my previous location
                 resource.rect.y += 36  # Change my Y to move down
-                myspot = objs[resource.col()][resource.row()]  # Need to ask if I'm still in the top reservoir
+                myspot = objs[resource.row()][resource.col()]  # Need to ask if I'm still in the top reservoir
                 for obj in myspot:  # Evaluate all the objects in my new position
                     if isinstance(obj, Pype):  # If the object is a pipe
                         resource.stage = 1  # I'm now in the pypeline
                     if isinstance(obj, Resource):  # If there is a resource here, there is a problem
                         print(f"There is a resource in my spot! (Row: {resource.row()} | Col: {resource.col()})")
-                objs[resource.col()][resource.row()].append(resource)  # Adds me to my new location
+                objs[resource.row()][resource.col()].append(resource)  # Adds me to my new location
         elif resource.stage == 1:
-          pass
+            pipe = objs[resource.row()][resource.col()][0]  # I am in the pypeline, which means there is a pipe in my location.
+            below = objs[resource.row()+1][resource.col()]
+            if len(below) != 0 and pipe.connected(below[0], NORTH):  # If the pipe below us is connected
+               pass  # if there is no resource below me, then I can move down
+            # I need to ask if the pipe is connected to left or right.
+    gprint(objs)
 
 
 def main():
     objs = [[[] for y in range(WIDTH//36)] for x in range(HEIGHT//36)]
     tank = [Resource(x=i//3*36, y=i % 3 * 36) for i in range(30)]
     for resource in tank:
-        objs[resource.rect.y//36][resource.rect.x//36].append(resource)
+        objs[resource.row()][resource.col()].append(resource)
     all_pipes = [Pype(x=i % 10*36, y=i//10*36+108) for i in range(100)]
     for pipe in all_pipes:
         objs[pipe.rect.y//36][pipe.rect.x//36].append(pipe)
