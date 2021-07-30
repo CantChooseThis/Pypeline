@@ -1,6 +1,7 @@
 import pygame as pg
 from pype import Pype
 from liquid import Liquid
+import random
 from resource import Resource
 pg.init()
 WIDTH, HEIGHT = 360, 576
@@ -94,44 +95,67 @@ def flow(tank, objs):
                 objs[resource.row()][resource.col()].append(resource)  # Adds me to my new location
         elif resource.stage == 1:
             pipe = objs[resource.row()][resource.col()][0]  # I am in the pypeline, which means there is a pipe in my location.
-            below = objs[resource.row()+1][resource.col()]
-            if len(below) != 0 and isinstance(below[0], Pype) and pipe.connected(below[0], SOUTH):  # If the pipe below us is connected
-                canmove = True  # if there is no resource below me, then I can move down
-                for object in below:
-                    if isinstance(object, Resource):
-                        canmove = False
-                if canmove:
-                    objs[resource.row()][resource.col()].pop()  # Remove myself from my previous location
-                    resource.rect.y += 36  # Change my Y to move down
-                    spot = objs[resource.row()][resource.col()]  # Check if I'm still in the pypeline
-                    resource.stage = 2
-                    for obj in spot:
-                        if isinstance(obj, Pype):
-                            resource.stage = 1
 
-                    objs[resource.row()][resource.col()].append(resource)  # Add me to my new location in objs
-            if resource.col() > 0:
-                left = objs[resource.row()][resource.col()-1]
-                if len(left) != 0 and isinstance(left[0], Pype) and pipe.connected(left[0], WEST):  # If the pipe left of us is connected
-                    canmove = True  # If there is no resource left of me, then I can move left
-                    for object in left:
+            def down():
+                below = objs[resource.row()+1][resource.col()]
+                if len(below) == 0:
+                    if pipe.open[SOUTH]:
+                        resource.stage = 2
+                        objs[resource.row()][resource.col()].pop()
+                        resource.rect.y += 36
+                        objs[resource.row()][resource.col()].append(resource)
+                        return True
+                elif isinstance(below[0], Pype) and pipe.connected(below[0], SOUTH):  # If the pipe below us is connected
+                    canmove = True  # if there is no resource below me, then I can move down
+                    for object in below:
                         if isinstance(object, Resource):
                             canmove = False
                     if canmove:
                         objs[resource.row()][resource.col()].pop()  # Remove myself from my previous location
-                        resource.rect.x -= 36  # Change my X to move down
-                        objs[resource.row()][resource.col()].append(resource) # Add me to my new location in objs
-            if resource.col() < 9:
-                right = objs[resource.row()][resource.col()+1]
-                if len(right) != 0 and isinstance(right[0], Pype) and pipe.connected(right[0], EAST):  # If the pipe left of us is connected
-                    canmove = True  # If there is no resource left of me, then I can move right
-                    for object in right:
-                        if isinstance(object, Resource):
-                            canmove = False
-                    if canmove:
-                        objs[resource.row()][resource.col()].pop()  # Remove myself from my previous location
-                        resource.rect.x += 36  # Change my X to move down
-                        objs[resource.row()][resource.col()].append(resource) # Add me to my new location in objs
+                        resource.rect.y += 36  # Change my Y to move down
+                        objs[resource.row()][resource.col()].append(resource)  # Add me to my new location in objs
+                        return True
+                return False
+
+            def left():
+                if resource.col() > 0:
+                    left = objs[resource.row()][resource.col()-1]
+                    if len(left) != 0 and isinstance(left[0], Pype) and pipe.connected(left[0], WEST):  # If the pipe left of us is connected
+                        canmove = True  # If there is no resource left of me, then I can move left
+                        for object in left:
+                            if isinstance(object, Resource):
+                                canmove = False
+                        if canmove:
+                            objs[resource.row()][resource.col()].pop()  # Remove myself from my previous location
+                            resource.rect.x -= 36  # Change my X to move down
+                            objs[resource.row()][resource.col()].append(resource)  # Add me to my new location in objs
+                            return True
+                return False
+
+            def right():
+                if resource.col() < 9:
+                    right = objs[resource.row()][resource.col()+1]
+                    if len(right) != 0 and isinstance(right[0], Pype) and pipe.connected(right[0], EAST):  # If the pipe left of us is connected
+                        canmove = True  # If there is no resource left of me, then I can move right
+                        for object in right:
+                            if isinstance(object, Resource):
+                                canmove = False
+                        if canmove:
+                            objs[resource.row()][resource.col()].pop()  # Remove myself from my previous location
+                            resource.rect.x += 36  # Change my X to move down
+                            objs[resource.row()][resource.col()].append(resource)  # Add me to my new location in objs
+                            return True
+                return False
+            if not down():
+                dir = [left, right]
+                if not dir.pop(random.randint(0, 1))():
+                    dir[0]()
+        elif resource.stage == 2:
+            if resource.row() < 15 and len(objs[resource.row()+1][resource.col()]) == 0:
+                objs[resource.row()][resource.col()].pop()
+                resource.rect.y += 36
+                objs[resource.row()][resource.col()].append(resource)
+
     gprint(objs)
 
 
