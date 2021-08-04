@@ -10,7 +10,9 @@ NORTH, SOUTH, EAST, WEST = 0, 1, 2, 3
 PROGRESS = pg.USEREVENT+1
 
 
-def draw(all_pipes, liquids, tank):
+
+
+def draw(all_pipes, liquids, tank, font=None):
     WIN.fill((0, 0, 0))
     for liquid in liquids:
         WIN.blit(liquid.surface, liquid.rect)
@@ -18,6 +20,10 @@ def draw(all_pipes, liquids, tank):
         WIN.blit(resource.surface, resource.rect)
     for pipe in all_pipes:
         WIN.blit(pipe.surface, pipe.rect)
+    if font != None:
+        WIN.blit(font, font.get_rect(y=54, x=12))
+
+
 
     pg.display.update()
 
@@ -161,7 +167,7 @@ def flow(tank, objs):
 
 def main():
     objs = [[[] for y in range(WIDTH//36)] for x in range(HEIGHT//36)]
-    tank = [Resource(x=i//3*36, y=i % 3 * 36) for i in range(30)]
+    tank = [Resource(x=i//3*36, y=i % 3 * 36) for i in range(30)] # y = 468
     for resource in tank:
         objs[resource.row()][resource.col()].append(resource)
     all_pipes = [Pype(x=i % 10*36, y=i//10*36+108) for i in range(100)]
@@ -179,7 +185,7 @@ def main():
             pipe.n[WEST] = [e for e in all_pipes if e.rect.y == pipe.rect.y and e.rect.x == pipe.rect.x-pipe.rect.width][0]
     liquids = []
     all_pipes[0].source = True
-    pg.time.set_timer(PROGRESS, 1500)
+    pg.time.set_timer(PROGRESS, 100)
     play = True
     counter = 0
     while play:
@@ -198,6 +204,18 @@ def main():
                 # check_filled(all_pipes)
                 # liquids = [pipe.liquid for pipe in all_pipes if pipe.filled]
                 flow(tank, objs)
+                won = True
+                for resource in tank:
+                    if resource.row() < 13:
+                        won = False
+                if won:
+                    message = f"You won in {pg.time.get_ticks() // 1000} seconds, and in {counter} moves"
+                    cali = pg.font.Font("CALIBRI.TTF", 20).render(message, True, (255, 255, 255))
+                    draw(all_pipes, liquids, tank, font=cali)
+                    while True:
+                        for event in pg.event.get():
+                            if event.type == pg.QUIT:
+                                play = False
         pg.display.set_caption(f"Pypeline - {counter} moves")
 
         draw(all_pipes, liquids, tank)
